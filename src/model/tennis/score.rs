@@ -1,12 +1,16 @@
-use async_graphql::{InputObject, SimpleObject, Enum};
+use async_graphql::{Enum, InputObject, SimpleObject};
 use strum::Display;
 
-use super::player::TennisPlayer;
+use super::{
+    player::{InputTennisPlayer, TennisPlayer},
+    shared::InputToSimpleObjectConvertible,
+};
 
-#[derive(Clone, Debug, SimpleObject, InputObject)]
+// TODO: OutPut and Input Data einzeln machen
+#[derive(Clone, Debug, SimpleObject)]
 pub struct TennisScoreData {
     pub player: TennisPlayer,
-    pub reason: ScoringReason
+    pub reason: ScoringReason,
 }
 
 impl std::fmt::Display for TennisScoreData {
@@ -21,5 +25,20 @@ pub enum ScoringReason {
     Winner,
     UnforcedError,
     Fault,
-    DoubleFault
+    DoubleFault,
+}
+
+#[derive(InputObject)]
+pub struct InputTennisScoreData {
+    pub player: InputTennisPlayer,
+    pub reason: ScoringReason,
+}
+
+impl InputToSimpleObjectConvertible<TennisScoreData> for InputTennisScoreData {
+    fn to_simple_object(&self) -> TennisScoreData {
+        TennisScoreData {
+            player: self.player.to_simple_object(),
+            reason: self.reason,
+        }
+    }
 }

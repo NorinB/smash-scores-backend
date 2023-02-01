@@ -1,0 +1,66 @@
+# query
+
+mutation CreateMatch($emptyTennisMatch: InputTennisMatch!) {
+  createMatch(inputTennisMatch: $emptyTennisMatch) {
+    scoreStack {
+   	player {
+      firstName
+    },
+    reason
+  }
+    matchSettings {
+      name,
+      ruleSet {
+        bestOf
+      },
+      opponents {
+        homePlayer {
+          firstName
+        },
+        guestPlayer {
+          firstName
+        }
+      },
+      weather,
+      venue,
+      doubles
+    }
+  }
+}
+
+
+# Variables
+
+{
+  "emptyTennisMatch": {
+    "scoreStack": [],
+    "matchSettings": {
+    	"name": "Tournament",
+    	"ruleSet": {
+    		"bestOf": 3,
+    		"gamesPerSet": 6,
+    		"superTiebreak": true,
+    		"lastSetTiebreakInsteadOfTwoAhead": false
+  		},
+  		"opponents": {
+  			"homePlayer": {
+  				"id": 0,
+  				"firstName": "Noah",
+  				"lastName": "Bauer",
+  				"rightHanded": true
+				},
+        "homeDoublesPartner": null,
+        "guestPlayer": {
+        	"id": 1,
+  				"firstName": "Christian",
+  				"lastName": "Krämer",
+  				"rightHanded": true
+        },
+        "guestDoublesPartner": null  
+      },
+      "weather": "Sunny",
+      "venue": "Center Court",
+      "doubles": false
+  	}
+  }
+}
