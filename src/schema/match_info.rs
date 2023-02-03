@@ -26,10 +26,8 @@ impl QueryRoot {
         let storage = ctx.data_unchecked::<Storage>().lock().await;
         storage
             .iter()
-            .map(|(id, tennis_match)| OutputTennisMatch {
-                id: id.to_owned(),
-                match_settings: tennis_match.match_settings.to_owned(),
-                score_stack: tennis_match.score_stack.to_owned(),
+            .map(|(id, tennis_match)| {
+                OutputTennisMatch::from((id.to_owned(), tennis_match.to_owned()))
             })
             .collect()
     }
@@ -82,12 +80,12 @@ impl MutationRoot {
         &self,
         ctx: &Context<'_>,
         input_tennis_match: InputTennisMatch,
-    ) -> TennisMatch {
+    ) -> OutputTennisMatch {
         let mut storage = ctx.data_unchecked::<Storage>().lock().await;
         let converted_tennis_match = input_tennis_match.to_simple_object();
         println!("Create Match: {}", converted_tennis_match);
         let new_uuid = uuid7().to_string();
-        storage.insert(ID(new_uuid.to_string()), converted_tennis_match);
-        storage.get(&ID(new_uuid)).unwrap().to_owned()
+        storage.insert(ID(new_uuid.to_owned()), converted_tennis_match.to_owned());
+        OutputTennisMatch::from((ID(new_uuid), converted_tennis_match))
     }
 }

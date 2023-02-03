@@ -27,6 +27,16 @@ pub struct OutputTennisMatch {
     pub match_settings: TennisMatchSettings,
 }
 
+impl From<(ID, TennisMatch)> for OutputTennisMatch {
+    fn from(input: (ID, TennisMatch)) -> Self {
+        OutputTennisMatch {
+            id: input.0.to_owned(),
+            score_stack: input.1.score_stack.to_owned(),
+            match_settings: input.1.match_settings.to_owned(),
+        }
+    }
+}
+
 #[derive(InputObject)]
 pub struct InputTennisMatch {
     pub score_stack: Vec<InputTennisScoreData>,
