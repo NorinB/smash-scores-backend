@@ -4,10 +4,13 @@ use async_graphql::{Context, EmptySubscription, Object, Schema, ID};
 use futures::lock::Mutex;
 use uuid7::uuid7;
 
-use crate::model::tennis::{
-    score::{InputTennisScoreData, TennisScoreData},
-    shared::InputToSimpleObjectConvertible,
-    tennis_match::{InputTennisMatch, OutputTennisMatch, TennisMatch},
+use crate::{
+    model::tennis::{
+        score::{InputTennisScoreData, TennisScoreData},
+        shared::InputToSimpleObjectConvertible,
+        tennis_match::{InputTennisMatch, OutputTennisMatch, TennisMatch},
+    },
+    shared::graphql_error::{get_no_match_found_error, get_no_point_to_undo_error, GraphQLError},
 };
 
 pub type MatchSchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;
@@ -39,15 +42,40 @@ impl MutationRoot {
     async fn add_point(
         &self,
         ctx: &Context<'_>,
-        id: ID,
+        match_id: ID,
         new_point: InputTennisScoreData,
-    ) -> TennisScoreData {
+    ) -> std::result::Result<TennisScoreData, GraphQLError> {
         let mut storage = ctx.data_unchecked::<Storage>().lock().await;
         let converted_point = new_point.to_simple_object();
         println!("Add point: {}", converted_point);
-        let ongoing_match = storage.get_mut(&id).unwrap();
-        ongoing_match.score_stack.push(converted_point.to_owned());
-        converted_point
+        match storage
+            .get_mut(&match_id)
+            .ok_or(get_no_match_found_error(&match_id))
+        {
+            Ok(ongoing_match) => {
+                ongoing_match.score_stack.push(converted_point.to_owned());
+                Ok(converted_point)
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    async fn undo_point(
+        &self,
+        ctx: &Context<'_>,
+        match_id: ID,
+    ) -> std::result::Result<TennisScoreData, GraphQLError> {
+        let mut storage = ctx.data_unchecked::<Storage>().lock().await;
+        match storage
+            .get_mut(&match_id)
+            .ok_or(get_no_match_found_error(&match_id))
+        {
+            Ok(ongoing_match) => match ongoing_match.score_stack.pop() {
+                Some(point) => Ok(point),
+                None => Err(get_no_point_to_undo_error(&match_id)),
+            },
+            Err(e) => Err(e),
+        }
     }
 
     async fn create_match(
@@ -60,6 +88,6 @@ impl MutationRoot {
         println!("Create Match: {}", converted_tennis_match);
         let new_uuid = uuid7().to_string();
         storage.insert(ID(new_uuid.to_string()), converted_tennis_match);
-        storage.get(&ID(new_uuid)).unwrap().clone()
+        storage.get(&ID(new_uuid)).unwrap().to_owned()
     }
 }
