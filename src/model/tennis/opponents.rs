@@ -1,9 +1,7 @@
 use async_graphql::{InputObject, SimpleObject};
 
-use super::{
-    player::{InputTennisPlayer, TennisPlayer},
-    shared::InputToSimpleObjectConvertible,
-};
+use super::player::{InputTennisPlayer, TennisPlayer};
+use crate::shared::input_to_simple_object_converter::InputToSimpleObjectConvertible;
 
 #[derive(Clone, Debug, SimpleObject)]
 pub struct TennisOpponents {

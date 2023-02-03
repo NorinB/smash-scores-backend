@@ -5,8 +5,8 @@ use async_graphql::{InputObject, SimpleObject, ID};
 use super::{
     match_settings::{InputTennisMatchSettings, TennisMatchSettings},
     score::{InputTennisScoreData, TennisScoreData},
-    shared::InputToSimpleObjectConvertible,
 };
+use crate::shared::input_to_simple_object_converter::InputToSimpleObjectConvertible;
 
 #[derive(Clone, Debug, SimpleObject)]
 pub struct TennisMatch {

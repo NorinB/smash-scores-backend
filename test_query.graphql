@@ -2,6 +2,7 @@
 
 mutation CreateMatch($emptyTennisMatch: InputTennisMatch!) {
   createMatch(inputTennisMatch: $emptyTennisMatch) {
+    id,
     scoreStack {
    	player {
       firstName
@@ -25,6 +26,29 @@ mutation CreateMatch($emptyTennisMatch: InputTennisMatch!) {
       venue,
       doubles
     }
+  }
+}
+
+subscription WatchMatch {
+  watchMatch(matchId: "018617a9-e680-7aca-8456-19a57a33ad07") {
+    id,
+    addedPoint {
+      player {firstName}
+    }
+  }
+}
+
+mutation AddPoint {
+  addPoint(matchId: "5", newPoint: {player: {id: 1, firstName: "Noah", lastName: "Bauer", rightHanded: true}, reason:  WINNER}) {
+    player {
+     firstName
+    }
+  }
+}
+
+query ShowMatches {
+  matches {
+    id
   }
 }
 
