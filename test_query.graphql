@@ -64,8 +64,49 @@ query ShowAllMatches {
     id,
     scoreStack {
       player {
-        firstName
+        id,
+        firstName,
+        lastName,
+        rightHanded
       }
+    },
+    matchSettings {
+      name,
+      ruleSet {
+        bestOf,
+        gamesPerSet,
+        superTiebreak,
+        lastSetTiebreakInsteadOfTwoAhead
+      },
+      opponents {
+        homePlayer {
+          id,
+          firstName,
+          lastName,
+          rightHanded
+        },
+        homeDoublesPartner {
+          id,
+          firstName,
+          lastName,
+          rightHanded
+        },
+        guestPlayer {
+          id,
+          firstName,
+          lastName,
+          rightHanded
+        },
+        guestDoublesPartner {
+          id,
+          firstName,
+          lastName,
+          rightHanded
+        }
+      },
+      weather,
+      venue,
+      doubles
     }
   }
 }
