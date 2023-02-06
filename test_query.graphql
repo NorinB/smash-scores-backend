@@ -30,25 +30,57 @@ mutation CreateMatch($emptyTennisMatch: InputTennisMatch!) {
 }
 
 subscription WatchMatch {
-  watchMatch(matchId: "018617a9-e680-7aca-8456-19a57a33ad07") {
-    id,
-    addedPoint {
+  watchMatch(matchId: "0186181c-ca48-7d5c-9bae-54b59965da0f") {
+    pointsChangeType,
+    matchId,
+    changedPoint {
       player {firstName}
     }
   }
 }
 
+subscription Test {
+  test(condition: 1000)
+}
+
 mutation AddPoint {
-  addPoint(matchId: "5", newPoint: {player: {id: 1, firstName: "Noah", lastName: "Bauer", rightHanded: true}, reason:  WINNER}) {
+  addPoint(matchId: "0186181c-ca48-7d5c-9bae-54b59965da0f", newPoint: {player: {id: 1, firstName: "Noah", lastName: "Bauer", rightHanded: true}, reason:  WINNER}) {
     player {
      firstName
     }
   }
 }
 
-query ShowMatches {
-  matches {
-    id
+mutation RemovePoint {
+  undoPoint(matchId: "0186181c-ca48-7d5c-9bae-54b59965da0f") {
+    player {
+      firstName
+    }
+  }
+}
+
+query ShowAllMatches {
+  allTennisMatches {
+    id,
+    scoreStack {
+      player {
+        firstName
+      }
+    }
+  }
+}
+
+query ShowMatch {
+  tennisMatch(matchId: "0186181c-ca48-7d5c-9bae-54b59965da0f") {
+    id,
+    scoreStack {
+      player {
+        firstName
+      }
+    },
+    matchSettings {
+      name
+    }
   }
 }
 
