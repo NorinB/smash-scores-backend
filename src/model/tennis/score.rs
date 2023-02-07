@@ -1,10 +1,8 @@
 use async_graphql::{Enum, InputObject, SimpleObject};
 use strum::Display;
 
-use super::{
-    player::{InputTennisPlayer, TennisPlayer},
-    shared::InputToSimpleObjectConvertible,
-};
+use super::player::{InputTennisPlayer, TennisPlayer};
+use crate::shared::input_to_simple_object_converter::InputToSimpleObjectConvertible;
 
 // TODO: OutPut and Input Data einzeln machen
 #[derive(Clone, Debug, SimpleObject)]

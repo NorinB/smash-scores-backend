@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use async_graphql::{InputObject, SimpleObject};
 
-use super::shared::InputToSimpleObjectConvertible;
+use crate::shared::input_to_simple_object_converter::InputToSimpleObjectConvertible;
 
 #[derive(Clone, Debug, SimpleObject)]
 pub struct TennisPlayer {
