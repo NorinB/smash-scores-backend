@@ -826,12 +826,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fstr"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cbe52f565afe064f2b9677e3962164f13c5df573816f90f7f8a720d6cbca6487"
-
-[[package]]
 name = "futures"
 version = "0.3.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1650,7 +1644,6 @@ dependencies = [
  "slab",
  "strum",
  "strum_macros",
- "uuid7",
 ]
 
 [[package]]
@@ -1920,16 +1913,6 @@ dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
-]
-
-[[package]]
-name = "uuid7"
-version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9b091aab74116c4ad92cd04a53e98ac64967a8d22dfc407d447a8f7ab58bc86"
-dependencies = [
- "fstr",
- "rand",
 ]
 
 [[package]]

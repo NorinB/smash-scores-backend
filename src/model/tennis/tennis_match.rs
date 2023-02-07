@@ -10,6 +10,7 @@ use crate::shared::input_to_simple_object_converter::InputToSimpleObjectConverti
 
 #[derive(Clone, Debug, SimpleObject)]
 pub struct TennisMatch {
+    pub id: ID,
     pub score_stack: Vec<TennisScoreData>,
     pub match_settings: TennisMatchSettings,
 }
@@ -20,25 +21,9 @@ impl Display for TennisMatch {
     }
 }
 
-#[derive(SimpleObject)]
-pub struct OutputTennisMatch {
-    pub id: ID,
-    pub score_stack: Vec<TennisScoreData>,
-    pub match_settings: TennisMatchSettings,
-}
-
-impl From<(ID, TennisMatch)> for OutputTennisMatch {
-    fn from(input: (ID, TennisMatch)) -> Self {
-        OutputTennisMatch {
-            id: input.0.to_owned(),
-            score_stack: input.1.score_stack.to_owned(),
-            match_settings: input.1.match_settings.to_owned(),
-        }
-    }
-}
-
 #[derive(InputObject)]
 pub struct InputTennisMatch {
+    pub id: ID,
     pub score_stack: Vec<InputTennisScoreData>,
     pub match_settings: InputTennisMatchSettings,
 }
@@ -46,6 +31,7 @@ pub struct InputTennisMatch {
 impl InputToSimpleObjectConvertible<TennisMatch> for InputTennisMatch {
     fn to_simple_object(&self) -> TennisMatch {
         TennisMatch {
+            id: self.id.to_owned(),
             score_stack: self
                 .score_stack
                 .iter()

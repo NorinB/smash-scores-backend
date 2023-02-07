@@ -3,12 +3,11 @@ use std::collections::HashMap;
 use async_graphql::{Context, Enum, Object, Result, Schema, Subscription, ID};
 use futures::lock::Mutex;
 use futures_util::{Stream, StreamExt};
-use uuid7::uuid7;
 
 use crate::{
     model::tennis::{
         score::{InputTennisScoreData, TennisScoreData},
-        tennis_match::{InputTennisMatch, OutputTennisMatch, TennisMatch},
+        tennis_match::{InputTennisMatch, TennisMatch},
     },
     shared::{
         graphql_error::SmashScoresGraphQLError,
@@ -27,13 +26,11 @@ pub struct QueryRoot;
 
 #[Object]
 impl QueryRoot {
-    async fn all_tennis_matches(&self, ctx: &Context<'_>) -> Vec<OutputTennisMatch> {
+    async fn all_tennis_matches(&self, ctx: &Context<'_>) -> Vec<TennisMatch> {
         let storage = ctx.data_unchecked::<Storage>().lock().await;
         storage
             .iter()
-            .map(|(id, tennis_match)| {
-                OutputTennisMatch::from((id.to_owned(), tennis_match.to_owned()))
-            })
+            .map(|(_, tennis_match)| tennis_match.to_owned())
             .collect()
     }
 
@@ -41,16 +38,13 @@ impl QueryRoot {
         &self,
         ctx: &Context<'_>,
         match_id: ID,
-    ) -> Result<OutputTennisMatch, SmashScoresGraphQLError> {
+    ) -> Result<TennisMatch, SmashScoresGraphQLError> {
         let storage = ctx.data_unchecked::<Storage>().lock().await;
         match storage
             .get(&match_id)
             .ok_or(SmashScoresGraphQLError::get_no_match_found_error(&match_id))
         {
-            Ok(ongoing_match) => Ok(OutputTennisMatch::from((
-                match_id.to_owned(),
-                ongoing_match.to_owned(),
-            ))),
+            Ok(ongoing_match) => Ok(ongoing_match.to_owned()),
             Err(e) => Err(e),
         }
     }
@@ -117,13 +111,15 @@ impl MutationRoot {
         &self,
         ctx: &Context<'_>,
         input_tennis_match: InputTennisMatch,
-    ) -> OutputTennisMatch {
+    ) -> TennisMatch {
         let mut storage = ctx.data_unchecked::<Storage>().lock().await;
         let converted_tennis_match = input_tennis_match.to_simple_object();
         println!("Create Match: {}", converted_tennis_match);
-        let new_uuid = uuid7().to_string();
-        storage.insert(ID(new_uuid.to_owned()), converted_tennis_match.to_owned());
-        OutputTennisMatch::from((ID(new_uuid), converted_tennis_match))
+        storage.insert(
+            converted_tennis_match.id.to_owned(),
+            converted_tennis_match.to_owned(),
+        );
+        converted_tennis_match
     }
 }
 
@@ -169,9 +165,5 @@ impl SubscriptionRoot {
             };
             async move { res }
         })
-    }
-
-    async fn test(&self, condition: i32) -> impl Stream<Item = i32> {
-        futures_util::stream::iter(0..condition)
     }
 }
