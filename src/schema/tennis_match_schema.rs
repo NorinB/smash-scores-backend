@@ -6,6 +6,7 @@ use futures_util::{Stream, StreamExt};
 
 use crate::{
     model::tennis::{
+        player::{InputTennisPlayer, TennisPlayer},
         score::{InputTennisScoreData, TennisScoreData},
         tennis_match::{InputTennisMatch, TennisMatch},
     },
@@ -69,10 +70,12 @@ impl MutationRoot {
         {
             Ok(ongoing_match) => {
                 ongoing_match.score_stack.push(converted_point.to_owned());
-                SimpleBroker::publish(TennisPointsChanged {
-                    points_change_type: TennisPointsChangeType::Added,
+                SimpleBroker::publish(MatchEvent {
+                    match_event_type: MatchEventType::PointAdded,
                     match_id: match_id.to_owned(),
-                    changed_point: converted_point.to_owned(),
+                    changed_point: Some(converted_point.to_owned()),
+                    serving_starter_home: None,
+                    serving_starter_guest: None,
                 });
                 Ok(converted_point)
             }
@@ -92,10 +95,12 @@ impl MutationRoot {
         {
             Ok(ongoing_match) => match ongoing_match.score_stack.pop() {
                 Some(point) => {
-                    SimpleBroker::publish(TennisPointsChanged {
-                        points_change_type: TennisPointsChangeType::Removed,
+                    SimpleBroker::publish(MatchEvent {
+                        match_event_type: MatchEventType::PointRemoved,
                         match_id: match_id.to_owned(),
-                        changed_point: point.to_owned(),
+                        changed_point: Some(point.to_owned()),
+                        serving_starter_home: None,
+                        serving_starter_guest: None,
                     });
                     Ok(point)
                 }
@@ -121,42 +126,136 @@ impl MutationRoot {
         );
         converted_tennis_match
     }
+
+    async fn add_serving_starter(
+        &self,
+        ctx: &Context<'_>,
+        match_id: ID,
+        player: InputTennisPlayer,
+        is_home: bool,
+    ) -> Result<TennisPlayer, SmashScoresGraphQLError> {
+        let mut storage = ctx.data_unchecked::<Storage>().lock().await;
+        match storage.get_mut(&match_id) {
+            Some(tennis_match) => {
+                let converted_player = player.to_simple_object();
+                let serving_starter_to_return = match is_home {
+                    true => {
+                        tennis_match
+                            .serving_starter_home
+                            .push(Some(converted_player.to_owned()));
+                        (
+                            Some(tennis_match.serving_starter_home.to_owned()),
+                            None,
+                            MatchEventType::ServingStarterHomeChanged,
+                        )
+                    }
+                    _ => {
+                        tennis_match
+                            .serving_starter_guest
+                            .push(Some(converted_player.to_owned()));
+                        (
+                            None,
+                            Some(tennis_match.serving_starter_guest.to_owned()),
+                            MatchEventType::ServingStarterGuestChanged,
+                        )
+                    }
+                };
+                SimpleBroker::publish(MatchEvent {
+                    match_id: match_id.to_owned(),
+                    changed_point: None,
+                    serving_starter_home: serving_starter_to_return.0,
+                    serving_starter_guest: serving_starter_to_return.1,
+                    match_event_type: serving_starter_to_return.2,
+                });
+                Ok(converted_player)
+            }
+            None => Err(SmashScoresGraphQLError::get_no_match_found_error(&match_id)),
+        }
+    }
+
+    async fn remove_serving_starter(
+        &self,
+        ctx: &Context<'_>,
+        match_id: ID,
+        is_home: bool,
+    ) -> Result<Option<TennisPlayer>, SmashScoresGraphQLError> {
+        let mut storage = ctx.data_unchecked::<Storage>().lock().await;
+        match storage.get_mut(&match_id) {
+            Some(tennis_match) => {
+                let serving_starter_to_return = match is_home {
+                    true => (
+                        Some(tennis_match.serving_starter_home.to_owned()),
+                        None,
+                        MatchEventType::ServingStarterHomeChanged,
+                        tennis_match.serving_starter_home.pop().unwrap(),
+                    ),
+                    _ => (
+                        None,
+                        Some(tennis_match.serving_starter_guest.to_owned()),
+                        MatchEventType::ServingStarterGuestChanged,
+                        tennis_match.serving_starter_guest.pop().unwrap(),
+                    ),
+                };
+                SimpleBroker::publish(MatchEvent {
+                    match_id: match_id.to_owned(),
+                    changed_point: None,
+                    serving_starter_home: serving_starter_to_return.0,
+                    serving_starter_guest: serving_starter_to_return.1,
+                    match_event_type: serving_starter_to_return.2,
+                });
+                Ok(serving_starter_to_return.3)
+            }
+            None => Err(SmashScoresGraphQLError::get_no_match_found_error(&match_id)),
+        }
+    }
 }
 
 #[derive(Clone)]
-struct TennisPointsChanged {
-    points_change_type: TennisPointsChangeType,
+struct MatchEvent {
+    match_event_type: MatchEventType,
     match_id: ID,
-    changed_point: TennisScoreData,
+    serving_starter_home: Option<Vec<Option<TennisPlayer>>>,
+    serving_starter_guest: Option<Vec<Option<TennisPlayer>>>,
+    changed_point: Option<TennisScoreData>,
 }
 
 #[Object]
-impl TennisPointsChanged {
-    async fn points_change_type(&self) -> TennisPointsChangeType {
-        self.points_change_type
+impl MatchEvent {
+    async fn event_type(&self) -> MatchEventType {
+        self.match_event_type
     }
 
     async fn match_id(&self) -> &ID {
         &self.match_id
     }
 
-    async fn changed_point(&self) -> &TennisScoreData {
+    async fn changed_point(&self) -> &Option<TennisScoreData> {
         &self.changed_point
+    }
+
+    async fn serving_starter_home(&self) -> &Option<Vec<Option<TennisPlayer>>> {
+        &self.serving_starter_home
+    }
+
+    async fn serving_starter_guest(&self) -> &Option<Vec<Option<TennisPlayer>>> {
+        &self.serving_starter_guest
     }
 }
 
 #[derive(Enum, Eq, PartialEq, Copy, Clone)]
-enum TennisPointsChangeType {
-    Added,
-    Removed,
+enum MatchEventType {
+    PointAdded,
+    PointRemoved,
+    ServingStarterHomeChanged,
+    ServingStarterGuestChanged,
 }
 
 pub struct SubscriptionRoot;
 
 #[Subscription]
 impl SubscriptionRoot {
-    async fn watch_match(&self, match_id: Option<ID>) -> impl Stream<Item = TennisPointsChanged> {
-        SimpleBroker::<TennisPointsChanged>::subscribe().filter(move |event| {
+    async fn watch_match(&self, match_id: Option<ID>) -> impl Stream<Item = MatchEvent> {
+        SimpleBroker::<MatchEvent>::subscribe().filter(move |event| {
             let res = if let Some(match_id) = match_id.clone() {
                 println!("{:?}", event.match_id);
                 match_id == event.match_id
