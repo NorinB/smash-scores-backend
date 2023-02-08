@@ -3,7 +3,7 @@
 This is the backend for the Smash Scores iOS app.
 Used technologies:
 - [Rust](https://www.rust-lang.org) programming language
-- [Rocket](https://rocket.rs) Web-Server
+- [Actix Web](https://actix.rs/) Web-Server
 - [Async-GraphQL](https://github.com/async-graphql/async-graphql)
 
 
