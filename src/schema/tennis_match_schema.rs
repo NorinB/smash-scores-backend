@@ -127,6 +127,18 @@ impl MutationRoot {
         converted_tennis_match
     }
 
+    async fn delete_match(
+        &self,
+        ctx: &Context<'_>,
+        match_id: ID,
+    ) -> Result<TennisMatch, SmashScoresGraphQLError> {
+        let mut storage = ctx.data_unchecked::<Storage>().lock().await;
+        match storage.remove(&match_id) {
+            Some(tennis_match) => Ok(tennis_match),
+            None => Err(SmashScoresGraphQLError::get_no_match_found_error(&match_id)),
+        }
+    }
+
     async fn add_serving_starter(
         &self,
         ctx: &Context<'_>,
