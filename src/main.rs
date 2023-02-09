@@ -2,37 +2,14 @@ use actix_web::{
     guard,
     middleware::{Compress, Logger},
     web::{self, Data},
-    App, HttpRequest, HttpResponse, HttpServer, Result,
+    App, HttpServer,
 };
-use async_graphql::{http::GraphiQLSource, Schema};
-use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse, GraphQLSubscription};
+use async_graphql::Schema;
 
-use smash_scores_backend::schema::tennis_match_schema::{
-    MatchSchema, MutationRoot, QueryRoot, Storage, SubscriptionRoot,
+use smash_scores_backend::{
+    api::index::{gql_playground, index, index_ws},
+    schema::tennis_match_schema::{MutationRoot, QueryRoot, Storage, SubscriptionRoot},
 };
-
-async fn index(schema: web::Data<MatchSchema>, req: GraphQLRequest) -> GraphQLResponse {
-    schema.execute(req.into_inner()).await.into()
-}
-
-async fn index_ws(
-    schema: web::Data<MatchSchema>,
-    req: HttpRequest,
-    payload: web::Payload,
-) -> Result<HttpResponse> {
-    GraphQLSubscription::new(Schema::clone(&*schema)).start(&req, payload)
-}
-
-async fn gql_playground() -> HttpResponse {
-    HttpResponse::Ok()
-        .content_type("text/html; charset=utf-8")
-        .body(
-            GraphiQLSource::build()
-                .endpoint("/")
-                .subscription_endpoint("/")
-                .finish(),
-        )
-}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
