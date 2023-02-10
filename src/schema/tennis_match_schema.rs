@@ -161,7 +161,7 @@ impl MutationRoot {
                             MatchEventType::ServingStarterHomeChanged,
                         )
                     }
-                    _ => {
+                    false => {
                         tennis_match
                             .serving_starter_guest
                             .push(Some(converted_player.to_owned()));
@@ -195,18 +195,24 @@ impl MutationRoot {
         match storage.get_mut(&match_id) {
             Some(tennis_match) => {
                 let serving_starter_to_return = match is_home {
-                    true => (
-                        Some(tennis_match.serving_starter_home.to_owned()),
-                        None,
-                        MatchEventType::ServingStarterHomeChanged,
-                        tennis_match.serving_starter_home.pop().unwrap(),
-                    ),
-                    _ => (
-                        None,
-                        Some(tennis_match.serving_starter_guest.to_owned()),
-                        MatchEventType::ServingStarterGuestChanged,
-                        tennis_match.serving_starter_guest.pop().unwrap(),
-                    ),
+                    true => {
+                        let removed_starter = tennis_match.serving_starter_home.pop().unwrap();
+                        (
+                            Some(tennis_match.serving_starter_home.to_owned()),
+                            None,
+                            MatchEventType::ServingStarterHomeChanged,
+                            removed_starter,
+                        )
+                    }
+                    false => {
+                        let removed_starter = tennis_match.serving_starter_guest.pop().unwrap();
+                        (
+                            None,
+                            Some(tennis_match.serving_starter_guest.to_owned()),
+                            MatchEventType::ServingStarterGuestChanged,
+                            removed_starter,
+                        )
+                    }
                 };
                 SimpleBroker::publish(MatchEvent {
                     match_id: match_id.to_owned(),

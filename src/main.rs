@@ -21,6 +21,7 @@ async fn main() -> std::io::Result<()> {
         .data(Storage::default())
         .finish();
 
+    print!("{}", &schema.sdl());
     HttpServer::new(move || {
         let logger = Logger::default();
         App::new()
