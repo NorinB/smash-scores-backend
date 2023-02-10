@@ -1,0 +1,264 @@
+# query
+
+mutation CreateMatch($emptyTennisMatch: InputTennisMatch!) {
+  createMatch(inputTennisMatch: $emptyTennisMatch) {
+    id,
+    scoreStack {
+   	player {
+      firstName
+    },
+    reason
+  }
+    matchSettings {
+      name,
+      ruleSet {
+        bestOf
+      },
+      opponents {
+        homePlayer {
+          firstName
+        },
+        guestPlayer {
+          firstName
+        }
+      },
+      weather,
+      venue,
+      doubles
+    },
+    servingStarterHome {
+      id,
+      firstName,
+      lastName,
+      rightHanded
+    },
+    servingStarterGuest {
+      id,
+      firstName,
+      lastName,
+      rightHanded
+    },
+    startingTime,
+    startingTeam
+  }
+}
+
+subscription WatchMatch {
+  watchMatch(matchId: "0186181c-ca48-7d5c-9bae-54b59965da0f") {
+    pointsChangeType,
+    matchId,
+    changedPoint {
+      player {firstName}
+    }
+  }
+}
+
+mutation AddPoint {
+  addPoint(matchId: "0", newPoint: {player: {id: 1, firstName: "Noah", lastName: "Bauer", rightHanded: true}, reason:  WINNER}) {
+    player {
+     firstName
+    }
+  }
+}
+
+mutation RemovePoint {
+  undoPoint(matchId: "0") {
+    player {
+      firstName
+    }
+  }
+}
+
+query ShowAllMatches {
+  allTennisMatches {
+    id,
+    scoreStack {
+      player {
+        id,
+        firstName,
+        lastName,
+        rightHanded
+      }
+    },
+    matchSettings {
+      name,
+      ruleSet {
+        bestOf,
+        gamesPerSet,
+        superTiebreak,
+        lastSetTiebreakInsteadOfTwoAhead
+      },
+      opponents {
+        homePlayer {
+          id,
+          firstName,
+          lastName,
+          rightHanded
+        },
+        homeDoublesPartner {
+          id,
+          firstName,
+          lastName,
+          rightHanded
+        },
+        guestPlayer {
+          id,
+          firstName,
+          lastName,
+          rightHanded
+        },
+        guestDoublesPartner {
+          id,
+          firstName,
+          lastName,
+          rightHanded
+        }
+      },
+      weather,
+      venue,
+      doubles
+    },
+    servingStarterHome {
+      id,
+      firstName,
+      lastName,
+      rightHanded
+    },
+    servingStarterGuest {
+      id,
+      firstName,
+      lastName,
+      rightHanded
+    },
+    startingTime,
+    startingTeam
+  }
+}
+
+query ShowMatch {
+  tennisMatch(matchId: "0") {
+    id,
+    scoreStack {
+      player {
+        id,
+        firstName,
+        lastName,
+        rightHanded
+      }
+    },
+    matchSettings {
+      name,
+      ruleSet {
+        bestOf,
+        gamesPerSet,
+        superTiebreak,
+        lastSetTiebreakInsteadOfTwoAhead
+      },
+      opponents {
+        homePlayer {
+          id,
+          firstName,
+          lastName,
+          rightHanded
+        },
+        homeDoublesPartner {
+          id,
+          firstName,
+          lastName,
+          rightHanded
+        },
+        guestPlayer {
+          id,
+          firstName,
+          lastName,
+          rightHanded
+        },
+        guestDoublesPartner {
+          id,
+          firstName,
+          lastName,
+          rightHanded
+        }
+      },
+      weather,
+      venue,
+      doubles
+    },
+    servingStarterHome {
+      id,
+      firstName,
+      lastName,
+      rightHanded
+    },
+    servingStarterGuest {
+      id,
+      firstName,
+      lastName,
+      rightHanded
+    },
+    startingTime,
+    startingTeam
+  }
+}
+
+query FetchSchema {
+  __schema {
+    queryType {
+      fields {
+        name
+      }
+    }
+  }
+}
+
+
+# Variables
+
+{
+  "emptyTennisMatch": {
+    "id": "0",
+    "scoreStack": [],
+    "matchSettings": {
+    	"name": "Tournament",
+    	"ruleSet": {
+    		"bestOf": 3,
+    		"gamesPerSet": 6,
+    		"superTiebreak": true,
+    		"lastSetTiebreakInsteadOfTwoAhead": false
+  		},
+  		"opponents": {
+  			"homePlayer": {
+  				"id": 0,
+  				"firstName": "Noah",
+  				"lastName": "Bauer",
+  				"rightHanded": true
+				},
+        "homeDoublesPartner": null,
+        "guestPlayer": {
+        	"id": 1,
+  				"firstName": "Christian",
+  				"lastName": "Krämer",
+  				"rightHanded": true
+        },
+        "guestDoublesPartner": null  
+      },
+      "weather": "Sunny",
+      "venue": "Center Court",
+      "doubles": false
+    },
+    "servingStarterHome": {
+      "id": 0,
+      "firstName": "Noah",
+      "lastName": "Bauer",
+      "rightHanded": true
+    },
+    "servingStarterGuest": {
+      "id": 1,
+      "firstName": "Christian",
+      "lastName": "Krämer",
+      "rightHanded": true
+    },
+    "startingTime": "15:00",
+    "startingTeam": "HOME"
+  }
+}
